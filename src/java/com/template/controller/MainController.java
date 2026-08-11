@@ -5,6 +5,7 @@ import com.template.util.DialogUtil;
 import com.template.model.dao.ComponentesDAO;
 import com.template.model.dto.ComponentesDTO;
 
+import com.template.validator.ComponentesValidator;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -87,8 +88,14 @@ public class MainController {
     @FXML
     private void btnCadastrarAction(ActionEvent event) {
         // UX: Validação de Campos Obrigatórios Básicos
-        if (txtNome.getText().isEmpty() || txtCPU.getText().isEmpty() || txtGPU.getText().isEmpty()) {
+        if (!ComponentesValidator.campoObrigatorioValidador(txtNome.getText(), txtCPU.getText(), txtGPU.getText())) {
             mostrarMensagem("Erro: Preencha ao menos Nome, CPU e GPU!", "#dc3545");
+            return;
+        }
+
+        if (!ComponentesValidator.armazenamentoValidador(txtArmaz.getText()))
+        {
+            mostrarMensagem("Erro: Insira o tipo (HD ou SSD) no inicio e o modelo de dados (GB ou TB) no final!", "#dc3545");
             return;
         }
 
