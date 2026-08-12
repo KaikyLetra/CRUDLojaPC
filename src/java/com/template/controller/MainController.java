@@ -1,11 +1,9 @@
 package com.template.controller;
 
+import com.template.model.dto.ComponentesDTO;
+import com.template.services.ComponentesServices;
 import com.template.util.DialogUtil;
 
-import com.template.model.dao.ComponentesDAO;
-import com.template.model.dto.ComponentesDTO;
-
-import com.template.validator.ComponentesValidator;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,9 +16,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+
 import java.util.ArrayList;
 
+import static com.template.services.ComponentesServices.mostrarMensagem;
+
 public class MainController {
+
     @FXML private Button btnLimpar;
     @FXML private Button btnDeletar;
     @FXML private Button btnCadastrar;
@@ -33,12 +35,10 @@ public class MainController {
     @FXML private TextField txtGPU;
     @FXML private TextField txtArmaz;
 
-    // UX: Componentes corretos mapeados do FXML
     @FXML private Spinner<Integer> txtRAM;
     @FXML private CheckBox txtDChannel;
     @FXML private CheckBox txtBluetooth;
 
-    // UX: Feedback visual para o usuário
     @FXML private Label lblMensagem;
 
     @FXML private TableView<ComponentesDTO> tblComponentes;
@@ -52,6 +52,8 @@ public class MainController {
     @FXML private TableColumn<ComponentesDTO, String> colArmaz;
     @FXML private TableColumn<ComponentesDTO, Boolean> colBluetooth;
 
+    private final ComponentesServices componentesServices = new ComponentesServices();
+
     @FXML
     private void initialize() {
         colId.setCellValueFactory(new PropertyValueFactory<>("idPc"));
@@ -64,7 +66,6 @@ public class MainController {
         colArmaz.setCellValueFactory(new PropertyValueFactory<>("armazenamento"));
         colBluetooth.setCellValueFactory(new PropertyValueFactory<>("bluetooth"));
 
-        // UX: Configuração do Spinner de RAM (Mínimo: 4GB, Máximo: 128GB, Padrão: 8GB, Incremento: 4)
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(4, 128, 8, 4);
         txtRAM.setValueFactory(valueFactory);
 
@@ -74,51 +75,81 @@ public class MainController {
 
     @FXML
     private void carregarComponente() {
-        ComponentesDAO objComponenteDAO = new ComponentesDAO();
-        ArrayList<ComponentesDTO> listaComponentes = objComponenteDAO.selectComponentes();
-        tblComponentes.setItems(FXCollections.observableArrayList(listaComponentes));
+        try {
+            ArrayList<ComponentesDTO> listaComponentes = componentesServices.buscarTodos();
+            tblComponentes.setItems(FXCollections.observableArrayList(listaComponentes));
+        } catch (Exception e) {
+            DialogUtil.showError("Erro ao carregar dados da tabela: " + e.getMessage());
+        }
     }
 
     @FXML
     void btnLimparAction() {
         limparCampos();
-        mostrarMensagem("Campos limpos. Pronto para um novo cadastro.", "#00adb5");
+        mostrarMensagem(lblMensagem, "Campos limpos. Pronto para um novo cadastro.", "#00adb5");
     }
 
     @FXML
     private void btnCadastrarAction(ActionEvent event) {
-        // UX: Validação de Campos Obrigatórios Básicos
-        if (!ComponentesValidator.campoObrigatorioValidador(txtNome.getText(), txtCPU.getText(), txtGPU.getText())) {
-            mostrarMensagem("Erro: Preencha ao menos Nome, CPU e GPU!", "#dc3545");
-            return;
+        try {
+            ComponentesDTO dto = montarDTOFormulario();
+            componentesServices.cadastrar(dto);
+
+            limparCampos();
+            carregarComponente();
+            mostrarMensagem(lblMensagem, "PC Setup cadastrado com sucesso!", "#28a745");
+
+        } catch (IllegalArgumentException e) {
+            mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
+        } catch (Exception e) {
+            DialogUtil.showError("Erro inesperado ao cadastrar: " + e.getMessage());
         }
+    }
 
-        if (!ComponentesValidator.armazenamentoValidador(txtArmaz.getText()))
-        {
-            mostrarMensagem("Erro: Insira o tipo (HD ou SSD) no inicio e o modelo de dados (GB ou TB) no final!", "#dc3545");
-            return;
+    @FXML
+    private void btnEditarAction(ActionEvent event) {
+        try {
+            if (txtId.getText().isEmpty()) {
+                mostrarMensagem(lblMensagem, "Selecione um registro na tabela para editar!", "#dc3545");
+                return;
+            }
+
+            ComponentesDTO dto = montarDTOFormulario();
+            dto.setIdPc(Integer.parseInt(txtId.getText()));
+
+            componentesServices.editar(dto);
+
+            limparCampos();
+            carregarComponente();
+            mostrarMensagem(lblMensagem, "Registro atualizado com sucesso!", "#28a745");
+
+        } catch (IllegalArgumentException e) {
+            mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
+        } catch (Exception e) {
+            DialogUtil.showError("Erro inesperado ao editar: " + e.getMessage());
         }
+    }
 
-        ComponentesDTO objComponenteDTO = new ComponentesDTO();
-        objComponenteDTO.setNome(txtNome.getText());
-        objComponenteDTO.setGabinete(txtGabinete.getText());
-        objComponenteDTO.setCpu(txtCPU.getText());
-        objComponenteDTO.setGpu(txtGPU.getText());
+    @FXML
+    private void btnDeletarAction(ActionEvent event) {
+        try {
+            if (txtId.getText().isEmpty()) {
+                mostrarMensagem(lblMensagem, "Selecione um registro na tabela para excluir!", "#dc3545");
+                return;
+            }
 
-        // Convertendo o valor numérico do Spinner para String para o DTO
-        objComponenteDTO.setRam(String.valueOf(txtRAM.getValue()) + " GB");
+            int idPc = Integer.parseInt(txtId.getText());
+            componentesServices.deletar(idPc);
 
-        // Pegando o estado booleano direto do CheckBox (Muito mais seguro)
-        objComponenteDTO.setDualchannel(txtDChannel.isSelected());
-        objComponenteDTO.setArmazenamento(txtArmaz.getText());
-        objComponenteDTO.setBluetooth(txtBluetooth.isSelected());
+            limparCampos();
+            carregarComponente();
+            mostrarMensagem(lblMensagem, "Registro excluído com sucesso!", "#dc3545");
 
-        ComponentesDAO objComponentesDAO = new ComponentesDAO();
-        objComponentesDAO.insertComponente(objComponenteDTO);
-
-        limparCampos();
-        carregarComponente();
-        mostrarMensagem("PC Setup cadastrado com sucesso!", "#28a745");
+        } catch (IllegalArgumentException e) {
+            mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
+        } catch (Exception e) {
+            DialogUtil.showError("Erro inesperado ao excluir: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -132,62 +163,20 @@ public class MainController {
             txtCPU.setText(objComponenteDTO.getCpu());
             txtGPU.setText(objComponenteDTO.getGpu());
 
-            // Tratamento da RAM para colocar o valor numérico de volta no Spinner
             try {
                 String ramLimpa = objComponenteDTO.getRam().replaceAll("[^0-9]", "");
                 txtRAM.getValueFactory().setValue(Integer.parseInt(ramLimpa));
             } catch (Exception e) {
-                txtRAM.getValueFactory().setValue(8); // Fallback caso esteja vazio ou fora do padrão
+                txtRAM.getValueFactory().setValue(8);
             }
 
-            // Atribui o booleano direto nas CheckBoxes
             txtDChannel.setSelected(objComponenteDTO.isDualchannel());
             txtArmaz.setText(objComponenteDTO.getArmazenamento());
             txtBluetooth.setSelected(objComponenteDTO.isBluetooth());
 
-            // UX: Ativa botões de edição/deleção, já que existe um registro selecionado
             btnEditar.setDisable(false);
             btnDeletar.setDisable(false);
-            mostrarMensagem("Registro ID " + objComponenteDTO.getIdPc() + " selecionado para edição.", "#ffc107");
-        }
-    }
-
-    @FXML
-    private void btnDeletarAction(ActionEvent event) {
-        if (!txtId.getText().isEmpty()) {
-            ComponentesDTO objComponenteDTO = new ComponentesDTO();
-            objComponenteDTO.setIdPc(Integer.parseInt(txtId.getText()));
-
-            ComponentesDAO objComponentesDAO = new ComponentesDAO();
-            objComponentesDAO.deleteComponente(objComponenteDTO);
-
-            limparCampos();
-            carregarComponente();
-            mostrarMensagem("Registro excluído com sucesso!", "#dc3545");
-        }
-    }
-
-    @FXML
-    private void btnEditarAction(ActionEvent event) {
-        if (!txtId.getText().isEmpty()) {
-            ComponentesDTO objComponenteDTO = new ComponentesDTO();
-            objComponenteDTO.setIdPc(Integer.parseInt(txtId.getText()));
-            objComponenteDTO.setNome(txtNome.getText());
-            objComponenteDTO.setGabinete(txtGabinete.getText());
-            objComponenteDTO.setCpu(txtCPU.getText());
-            objComponenteDTO.setGpu(txtGPU.getText());
-
-            objComponenteDTO.setRam(String.valueOf(txtRAM.getValue()) + " GB");
-            objComponenteDTO.setDualchannel(txtDChannel.isSelected());
-            objComponenteDTO.setArmazenamento(txtArmaz.getText());
-            objComponenteDTO.setBluetooth(txtBluetooth.isSelected());
-
-            ComponentesDAO objComponentesDAO = new ComponentesDAO();
-            objComponentesDAO.updateComponente(objComponenteDTO);
-
-            limparCampos();
-            carregarComponente();
-            mostrarMensagem("Registro atualizado com sucesso!", "#28a745");
+            mostrarMensagem(lblMensagem, "Registro ID " + objComponenteDTO.getIdPc() + " selecionado para edição.", "#ffc107");
         }
     }
 
@@ -199,25 +188,27 @@ public class MainController {
         txtGPU.clear();
         txtArmaz.clear();
 
-        // Reseta o Spinner para o valor padrão
         if (txtRAM != null && txtRAM.getValueFactory() != null) {
             txtRAM.getValueFactory().setValue(8);
         }
 
-        // Desmarca as caixas de seleção
         if (txtDChannel != null) txtDChannel.setSelected(false);
         if (txtBluetooth != null) txtBluetooth.setSelected(false);
 
-        // UX: Bloqueia os botões que precisam de seleção na tabela
         if (btnEditar != null) btnEditar.setDisable(true);
         if (btnDeletar != null) btnDeletar.setDisable(true);
     }
 
-    // Método utilitário para atualizar o rótulo de feedback visual (UX)
-    private void mostrarMensagem(String texto, String corHex) {
-        if (lblMensagem != null) {
-            lblMensagem.setText(texto);
-            lblMensagem.setStyle("-fx-text-fill: " + corHex + ";");
-        }
+    private ComponentesDTO montarDTOFormulario() {
+        ComponentesDTO dto = new ComponentesDTO();
+        dto.setNome(txtNome.getText());
+        dto.setGabinete(txtGabinete.getText());
+        dto.setCpu(txtCPU.getText());
+        dto.setGpu(txtGPU.getText());
+        dto.setRam(txtRAM.getValue() + " GB");
+        dto.setDualchannel(txtDChannel.isSelected());
+        dto.setArmazenamento(txtArmaz.getText());
+        dto.setBluetooth(txtBluetooth.isSelected());
+        return dto;
     }
 }
