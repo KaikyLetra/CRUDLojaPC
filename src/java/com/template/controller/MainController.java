@@ -3,6 +3,7 @@ package com.template.controller;
 import com.template.model.dto.ComponentesDTO;
 import com.template.services.ComponentesServices;
 import com.template.util.DialogUtil;
+import com.template.util.MensagemUtil;
 
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -18,8 +19,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.util.ArrayList;
-
-import static com.template.services.ComponentesServices.mostrarMensagem;
 
 public class MainController {
 
@@ -86,7 +85,7 @@ public class MainController {
     @FXML
     void btnLimparAction() {
         limparCampos();
-        mostrarMensagem(lblMensagem, "Campos limpos. Pronto para um novo cadastro.", "#00adb5");
+        MensagemUtil.mostrarMensagem(lblMensagem, "Campos limpos. Pronto para um novo cadastro.", "#00adb5");
     }
 
     @FXML
@@ -97,10 +96,10 @@ public class MainController {
 
             limparCampos();
             carregarComponente();
-            mostrarMensagem(lblMensagem, "PC Setup cadastrado com sucesso!", "#28a745");
+            MensagemUtil.mostrarMensagem(lblMensagem, "PC Setup cadastrado com sucesso!", "#28a745");
 
         } catch (IllegalArgumentException e) {
-            mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
+            MensagemUtil.mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
         } catch (Exception e) {
             DialogUtil.showError("Erro inesperado ao cadastrar: " + e.getMessage());
         }
@@ -110,7 +109,7 @@ public class MainController {
     private void btnEditarAction(ActionEvent event) {
         try {
             if (txtId.getText().isEmpty()) {
-                mostrarMensagem(lblMensagem, "Selecione um registro na tabela para editar!", "#dc3545");
+                MensagemUtil.mostrarMensagem(lblMensagem, "Selecione um registro na tabela para editar!", "#dc3545");
                 return;
             }
 
@@ -121,10 +120,10 @@ public class MainController {
 
             limparCampos();
             carregarComponente();
-            mostrarMensagem(lblMensagem, "Registro atualizado com sucesso!", "#28a745");
+            MensagemUtil.mostrarMensagem(lblMensagem, "Registro atualizado com sucesso!", "#28a745");
 
         } catch (IllegalArgumentException e) {
-            mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
+            MensagemUtil.mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
         } catch (Exception e) {
             DialogUtil.showError("Erro inesperado ao editar: " + e.getMessage());
         }
@@ -134,7 +133,7 @@ public class MainController {
     private void btnDeletarAction(ActionEvent event) {
         try {
             if (txtId.getText().isEmpty()) {
-                mostrarMensagem(lblMensagem, "Selecione um registro na tabela para excluir!", "#dc3545");
+                MensagemUtil.mostrarMensagem(lblMensagem, "Selecione um registro na tabela para excluir!", "#dc3545");
                 return;
             }
 
@@ -143,10 +142,10 @@ public class MainController {
 
             limparCampos();
             carregarComponente();
-            mostrarMensagem(lblMensagem, "Registro excluído com sucesso!", "#dc3545");
+            MensagemUtil.mostrarMensagem(lblMensagem, "Registro excluído com sucesso!", "#28a745");
 
         } catch (IllegalArgumentException e) {
-            mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
+            MensagemUtil.mostrarMensagem(lblMensagem, e.getMessage(), "#dc3545");
         } catch (Exception e) {
             DialogUtil.showError("Erro inesperado ao excluir: " + e.getMessage());
         }
@@ -176,7 +175,7 @@ public class MainController {
 
             btnEditar.setDisable(false);
             btnDeletar.setDisable(false);
-            mostrarMensagem(lblMensagem, "Registro ID " + objComponenteDTO.getIdPc() + " selecionado para edição.", "#ffc107");
+            MensagemUtil.mostrarMensagem(lblMensagem, "Registro ID " + objComponenteDTO.getIdPc() + " selecionado para edição.", "#ffc107");
         }
     }
 
