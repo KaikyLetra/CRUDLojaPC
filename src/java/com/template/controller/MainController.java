@@ -4,6 +4,8 @@ import com.template.model.dto.ComponentesDTO;
 import com.template.services.ComponentesServices;
 import com.template.util.DialogUtil;
 import com.template.util.MensagemUtil;
+import com.template.validator.ComponentesValidator;
+import com.template.validator.IComponentesValidator;
 
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -52,6 +54,17 @@ public class MainController {
     @FXML private TableColumn<ComponentesDTO, Boolean> colBluetooth;
 
     private final ComponentesServices componentesServices = new ComponentesServices();
+    private final IComponentesValidator cvalidator;
+
+    // Construtor sem parâmetros exigido pelo JavaFX (FXMLLoader)
+    public MainController() {
+        this.cvalidator = new ComponentesValidator();
+    }
+
+    // Construtor secundário mantido para injeção manual/testes
+    public MainController(IComponentesValidator cvalidator) {
+        this.cvalidator = cvalidator;
+    }
 
     @FXML
     private void initialize() {
@@ -92,7 +105,10 @@ public class MainController {
     private void btnCadastrarAction(ActionEvent event) {
         try {
             ComponentesDTO dto = montarDTOFormulario();
-            componentesServices.cadastrar(dto);
+
+            if (!cvalidator.validarComponente(dto))
+                return;
+            componentesServices.cadastrarComponente(dto);
 
             limparCampos();
             carregarComponente();
@@ -116,7 +132,7 @@ public class MainController {
             ComponentesDTO dto = montarDTOFormulario();
             dto.setIdPc(Integer.parseInt(txtId.getText()));
 
-            componentesServices.editar(dto);
+            componentesServices.editarComponente(dto);
 
             limparCampos();
             carregarComponente();
@@ -138,7 +154,7 @@ public class MainController {
             }
 
             int idPc = Integer.parseInt(txtId.getText());
-            componentesServices.deletar(idPc);
+            componentesServices.deletarComponente(idPc);
 
             limparCampos();
             carregarComponente();

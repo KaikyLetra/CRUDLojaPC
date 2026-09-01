@@ -1,6 +1,6 @@
 package com.template.validator;
 
-public class CampoObrigatorioValidator implements Validator<String>{
+public class CampoObrigatorioValidator implements Validator<String> {
 
     private final String nomeCampo;
     private final String valor;
@@ -11,17 +11,18 @@ public class CampoObrigatorioValidator implements Validator<String>{
     }
 
     @Override
-    public boolean validar(String valor) {
-        return this.valor != null && !this.valor.trim().isEmpty();
+    public boolean validar(String valorAtual) {
+        String texto = (valorAtual != null) ? valorAtual : this.valor;
+        return texto != null && !texto.trim().isEmpty();
     }
 
     @Override
     public String getMensagemErro() {
-        return "O campo" + nomeCampo + "Esta vazio";
+        return "O campo " + nomeCampo + " está vazio!";
     }
 
     @Override
     public String getValor() {
-        return "";
+        return valor;
     }
 }

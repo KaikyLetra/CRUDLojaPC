@@ -1,5 +1,7 @@
 package com.template.main;
 
+import com.template.validator.ComponentesValidator;
+import com.template.validator.IComponentesValidator;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -10,6 +12,8 @@ public class Main extends Application
     @Override
     public void start(Stage stage) throws Exception
     {
+        IComponentesValidator cValidator = new ComponentesValidator();
+
         FXMLLoader loader = new FXMLLoader(Main.class.getResource("main.fxml"));
         Scene scene = new Scene(loader.load(),600,400);
 
