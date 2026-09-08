@@ -129,10 +129,10 @@ public class MainController {
                 return;
             }
 
-            ComponentesDTO dto = montarDTOFormulario();
-            dto.setIdPc(Integer.parseInt(txtId.getText()));
+            ComponentesDTO componentesDTO = montarDTOFormulario();
+            componentesDTO.setIdPc(Integer.parseInt(txtId.getText()));
 
-            componentesServices.editarComponente(dto);
+            componentesServices.editarComponente(componentesDTO);
 
             limparCampos();
             carregarComponente();
@@ -215,15 +215,15 @@ public class MainController {
     }
 
     private ComponentesDTO montarDTOFormulario() {
-        ComponentesDTO dto = new ComponentesDTO();
-        dto.setNome(txtNome.getText());
-        dto.setGabinete(txtGabinete.getText());
-        dto.setCpu(txtCPU.getText());
-        dto.setGpu(txtGPU.getText());
-        dto.setRam(txtRAM.getValue() + " GB");
-        dto.setDualchannel(txtDChannel.isSelected());
-        dto.setArmazenamento(txtArmaz.getText());
-        dto.setBluetooth(txtBluetooth.isSelected());
-        return dto;
+        ComponentesDTO componentesDTO = new ComponentesDTO();
+        componentesDTO.setNome(txtNome.getText());
+        componentesDTO.setGabinete(txtGabinete.getText());
+        componentesDTO.setCpu(txtCPU.getText());
+        componentesDTO.setGpu(txtGPU.getText());
+        componentesDTO.setRam(txtRAM.getValue() + " GB");
+        componentesDTO.setDualchannel(txtDChannel.isSelected());
+        componentesDTO.setArmazenamento(txtArmaz.getText());
+        componentesDTO.setBluetooth(txtBluetooth.isSelected());
+        return componentesDTO;
     }
 }

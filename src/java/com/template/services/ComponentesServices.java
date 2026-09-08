@@ -17,11 +17,6 @@ public class ComponentesServices implements IComponentesServices {
         this.componentesValidator = new ComponentesValidator();
     }
 
-    // Construtor com injeção de dependência (caso use em testes)
-    public ComponentesServices(IComponentesValidator componentesValidator) {
-        this.componentesValidator = componentesValidator;
-    }
-
     public ArrayList<ComponentesDTO> buscarTodos() {
         return componentesDAO.selectComponentes();
     }
